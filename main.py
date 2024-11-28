@@ -1,11 +1,32 @@
 import imaplib
 import email
+from email.header import decode_header
 from openpyxl import Workbook
+from dotenv import load_dotenv
+import os
 
-# Gmail credentials
-EMAIL = 'your_email@gmail.com'
-PASSWORD = 'your_app_password'
+# Load environment variables from .env file
+load_dotenv()
+
+EMAIL = os.getenv('EMAIL')
+PASSWORD = os.getenv('PASSWORD')
 IMAP_SERVER = 'imap.gmail.com'
+
+# Function to decode the subject
+def decode_subject(subject):
+    decoded_fragments = decode_header(subject)
+    subject_string = ""
+    for fragment, encoding in decoded_fragments:
+        if isinstance(fragment, bytes):
+            # Handle unknown-8bit as latin1 fallback
+            if encoding and encoding.lower() == "unknown-8bit":
+                subject_string += fragment.decode('latin1', errors='ignore')
+            else:
+                subject_string += fragment.decode(encoding if encoding else 'utf-8', errors='ignore')
+        else:
+            subject_string += fragment
+    return subject_string
+
 
 # Function to fetch emails and populate Excel
 def fetch_emails_to_excel():
@@ -39,7 +60,7 @@ def fetch_emails_to_excel():
         msg = email.message_from_bytes(raw_email)
 
         # Extract subject
-        subject = msg["subject"]
+        subject = decode_subject(msg["subject"])
 
         # Extract body HTML
         body_html = ""
