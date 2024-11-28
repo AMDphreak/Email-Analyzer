@@ -1,2 +1,2 @@
-# Email-Analyzer
+# Job-Search-Analyzer
 An Email analyzer to produce reports about my job applications and rejections
